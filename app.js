@@ -87,6 +87,7 @@ app.post('/users/add', (req, res) => {
             title: 'Customers',
             users: users,
             errors: errors
+            
         });
         return
     } else {
