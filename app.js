@@ -2,7 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const expressValidator = require('express-validator');
-
+const mongojs = require('mongojs');
+const db = mongojs('customerapp', ['users']);
+const ObjectId = mongojs.ObjectId;
 const app = express();
 
 // const logger = function(req, res, next){
@@ -46,33 +48,14 @@ app.use(expressValidator({
     }
 }));
 
-const users = [
-    {
-        id : 1,
-        first_name : 'John',
-        last_name : 'Doe',
-        email : 'johndoe@gmail.com'
-    },
-    {
-        id : 2,
-        first_name : 'Bob',
-        last_name : 'Smith',
-        email : 'bobsmith@gmail.com'
-    },
-    {
-        id : 3,
-        first_name : 'Jill',
-        last_name : 'Jackson',
-        email : 'jjackson@gmail.com'
-    }
-
-];
-
 app.get('/', (req, res) => {
-    res.render('index', {
-        title: 'Customers',
-        users: users
-    });
+    db.users.find((err, docs)=>{
+        console.log(docs);
+        res.render('index', {
+            title: 'Customers',
+            users: docs
+        });
+;    });
 });
 
 app.post('/users/add', (req, res) => {
@@ -97,9 +80,26 @@ app.post('/users/add', (req, res) => {
             email: req.body.email
         }
 
+        db.users.insert(newUser,(err, result)=>{
+            if(err){
+                console.log(err);
+                return
+            }
+            res.redirect('/');
+        });
+
         console.log('\n success \n');
         console.log(newUser);
     }
+});
+
+app.delete('/users/delete/:id', (req, res) =>{
+    db.users.remove({_id: ObjectId(req.params.id)}, (err, result)=>{
+        if(err){
+            console.log(err);
+        }
+        res.redirect('/');
+    });
 });
 
 app.listen(3000, () => {
